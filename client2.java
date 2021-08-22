@@ -8,6 +8,6 @@ public class client2 {
         output2.writeUTF("Hello");
         output2.flush();
         output2.close();
-        output2.close();
+        s2.close();
     }
 }

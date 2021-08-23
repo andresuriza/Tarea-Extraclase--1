@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.event.*;
 
 public class client2 {
+
+    // -------------------------------------UI + algorithms-----------------------------------------------------------------------------------
     public static int y = 10;
 
     public static double extract(String product) {
@@ -28,6 +30,10 @@ public class client2 {
                 i++;
             }        
             else { // Si es coma
+                if (current_value == "impuesto") {
+                    System.out.println("Error, solo los primeros 3 datos procesados");
+                    break;
+                }
                 if (current_value == "valor"){
                     current_value = "peso";
                 }
@@ -40,12 +46,6 @@ public class client2 {
         return Double.parseDouble(valor) * Double.parseDouble(impuesto) / 100 + Double.parseDouble(peso) * 0.15; 
     }
     public static void main(String[] args) throws IOException {
-        Socket s2 = new Socket("localhost", 2021);
-        DataOutputStream output2 = new DataOutputStream(s2.getOutputStream());
-        output2.writeUTF("Goodbye");
-        output2.flush();
-        output2.close();
-
         JFrame frame = new JFrame("Chat box 2"); 
         frame.setSize(400,500); 
 
@@ -63,7 +63,6 @@ public class client2 {
                 String value = textbox.getText();
                 double result = extract(value);
                 String result_string = Double.toString(result);
-                System.out.println(result_string);
 
                 JLabel result_label = new JLabel(result_string);
                 result_label.setBounds(10, y, 400, 50);
@@ -78,6 +77,13 @@ public class client2 {
         frame.setLayout(null);
         frame.setVisible(true);
         frame.setResizable(false);  
+
+// -------------------------------------Network-----------------------------------------------------------------------------------
+        Socket s2 = new Socket("localhost", 2021);
+        DataOutputStream output2 = new DataOutputStream(s2.getOutputStream());
+        output2.writeUTF("Goodbye");
+        output2.flush();
+        output2.close();
         
         s2.close();
     }

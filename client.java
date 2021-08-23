@@ -3,7 +3,9 @@ import java.net.*;
 import javax.swing.*;
 import java.awt.event.*;
 
-public class client1 {
+public class client {
+
+// -------------------------------------algorithms-----------------------------------------------------------------------------------
     public static int y = 10;
 
     public static double extract(String product) {
@@ -28,6 +30,10 @@ public class client1 {
                 i++;
             }        
             else { // Si es coma
+                if (current_value == "impuesto") {
+                    System.out.println("Error, solo los primeros 3 datos procesados");
+                    break;
+                }
                 if (current_value == "valor"){
                     current_value = "peso";
                 }
@@ -40,14 +46,15 @@ public class client1 {
         return Double.parseDouble(valor) * Double.parseDouble(impuesto) / 100 + Double.parseDouble(peso) * 0.15; 
     }
     public static void main(String[] args) throws IOException {
-        Socket s1 = new Socket("localhost", 2021);
-        DataOutputStream output1 = new DataOutputStream(s1.getOutputStream());  // Sets output
-        output1.writeUTF("Hello");
-        output1.flush();
-        output1.close();
+// -------------------------------------Network-----------------------------------------------------------------------------------
+        Socket s = new Socket("localhost", 2021);
+        DataOutputStream output = new DataOutputStream(s.getOutputStream());  // Sets output
+        DataInputStream input = new DataInputStream(s.getInputStream());
+
         
 
-        JFrame frame = new JFrame("Chat box 1"); 
+// -------------------------------------UI-----------------------------------------------------------------------------------
+        JFrame frame = new JFrame("Chat"); 
         frame.setSize(400,500); 
 
         JButton button = new JButton("Send");
@@ -59,27 +66,43 @@ public class client1 {
         textbox.setVisible(true);
         frame.add(textbox);
 
-        button.addActionListener(new ActionListener() {
+        button.addActionListener(new ActionListener() { // Lo que hace enviar
             public void actionPerformed(ActionEvent e) {
                 String value = textbox.getText();
-                double result = extract(value);
-                String result_string = Double.toString(result);
-                System.out.println(result_string);
-
-                JLabel result_label = new JLabel(result_string);
-                result_label.setBounds(10, y, 400, 50);
-                y += 20;
-
-                frame.add(result_label);
-                frame.revalidate();
-                frame.repaint();    // Reescribe la label (no se crea una nueva si no que se vuelve a escribir)
+                
+                try {
+                    output.writeUTF(value); // Envía el valor numérico al server
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         });
     
         frame.setLayout(null);
         frame.setVisible(true);
         frame.setResizable(false);  
+
+        String calculation = input.readUTF();   // Recibe valor
+        // double calc_result = extract(calculation);  // Calcula valor
         
-        s1.close();
+        double result = extract(calculation);
+        String result_string = Double.toString(result);
+
+        JLabel result_label = new JLabel(result_string);
+        result_label.setBounds(10, y, 400, 50);
+        y += 20;
+
+        frame.add(result_label);
+        frame.revalidate();
+        frame.repaint();    // Reescribe la label (no se crea una nueva si no que se vuelve a escribir)
+
+        // System.out.println(calc_result);
+
+        output.flush();
+
+        // output.close();
+
+        // s.close();
+
     }
 }

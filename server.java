@@ -5,20 +5,24 @@ public class server {
     
     public static void main(String[] args) throws IOException {
         ServerSocket ss = new ServerSocket(2021);
-        Socket s1 = ss.accept();
-        Socket s2 = ss.accept();
+        Socket s = ss.accept();
 
-        DataInputStream input1 = new DataInputStream(s1.getInputStream());
-        DataInputStream input2 = new DataInputStream(s2.getInputStream());
+        DataOutputStream output = new DataOutputStream(s.getOutputStream());  // Sets output
+        DataInputStream input = new DataInputStream(s.getInputStream());
+        // BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         System.out.println("Succesfully connected");    // Confirmation message
 
-        String client1 = input1.readUTF();  // Reads input from client1
-        String client2 = input2.readUTF();  // Reads input from client2
+        String value = input.readUTF();     // Recibe el string
+        
+        System.out.println(value);
+    
+        output.writeUTF(value); // Reenvia el string
 
-        System.out.println(client1);
-        System.out.println(client2);
+        output.flush();
 
-        ss.close();
+        
+        // output.close();
+        // ss.close();
     }    
 }

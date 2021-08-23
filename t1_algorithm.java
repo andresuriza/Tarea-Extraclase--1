@@ -26,6 +26,11 @@ public class t1_algorithm {
                 i++;
             }        
             else { // Si es coma
+                if (current_value == "impuesto") {
+                    System.out.println("Error, solo los primeros 3 datos procesados");
+                    break;
+                
+                }
                 if (current_value == "valor"){
                     current_value = "peso";
                 }
@@ -55,7 +60,6 @@ public class t1_algorithm {
                 String value = textbox.getText();
                 double result = extract(value);
                 String result_string = Double.toString(result);
-                System.out.println(result_string);
 
                 JLabel result_label = new JLabel(result_string);
                 result_label.setBounds(10, y, 400, 50);

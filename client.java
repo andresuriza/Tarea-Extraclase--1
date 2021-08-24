@@ -1,108 +1,107 @@
-import java.io.*;
-import java.net.*;
 import javax.swing.*;
-import java.awt.event.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 
 public class client {
+    public static double socket_send(String message, DataInputStream in, DataOutputStream out) throws IOException {
+        out.writeUTF(message);
+        return in.readDouble();
+    }
 
-// -------------------------------------algorithms-----------------------------------------------------------------------------------
     public static int y = 10;
 
     public static double extract(String product) {
         int i = 0;
-        String valor = "";
-        String peso = "";
-        String impuesto = "";
+        StringBuilder valor = new StringBuilder();
+        StringBuilder peso = new StringBuilder();
+        StringBuilder impuesto = new StringBuilder();
         String current_value = "valor";
         char comma = ',';
 
         while (i != product.length()) {
             if (product.charAt(i) != comma) {   // Si no es coma
-                if (current_value == "valor") {
-                    valor += String.valueOf(product.charAt(i));
+                if (current_value.equals("valor")) {
+                    valor.append(product.charAt(i));
                 }
-                if (current_value == "peso") {
-                    peso += String.valueOf(product.charAt(i));
+                if (current_value.equals("peso")) {
+                    peso.append(product.charAt(i));
                 }
-                if (current_value == "impuesto") {
-                    impuesto += String.valueOf(product.charAt(i));
+                if (current_value.equals("impuesto")) {
+                    impuesto.append(product.charAt(i));
                 }
-                i++;
-            }        
+            }
             else { // Si es coma
-                if (current_value == "impuesto") {
+                if (current_value.equals("impuesto")) {
                     System.out.println("Error, solo los primeros 3 datos procesados");
                     break;
+
                 }
-                if (current_value == "valor"){
+                if (current_value.equals("valor")){
                     current_value = "peso";
                 }
                 else {
                     current_value = "impuesto";
-                }   
-                i++;
+                }
             }
+            i++;
         }
-        return Double.parseDouble(valor) * Double.parseDouble(impuesto) / 100 + Double.parseDouble(peso) * 0.15; 
+        return Double.parseDouble(valor.toString()) * Double.parseDouble(impuesto.toString()) / 100 + Double.parseDouble
+                (peso.toString()) * 0.15;
     }
     public static void main(String[] args) throws IOException {
-// -------------------------------------Network-----------------------------------------------------------------------------------
-        Socket s = new Socket("localhost", 2021);
-        DataOutputStream output = new DataOutputStream(s.getOutputStream());  // Sets output
-        DataInputStream input = new DataInputStream(s.getInputStream());
+        String host = "127.0.0.1";
+        int port = 5000;
+        DataInputStream in;
+        DataOutputStream out;
 
-        
+        Socket sc = new Socket(host, port); // Connects to server
 
-// -------------------------------------UI-----------------------------------------------------------------------------------
-        JFrame frame = new JFrame("Chat"); 
-        frame.setSize(400,500); 
+        in = new DataInputStream(sc.getInputStream());
+        out = new DataOutputStream(sc.getOutputStream());
+
+//----------------------------------------------------------------------------------------------------------------------
+        JFrame frame = new JFrame("CLIENT");
+        frame.setSize(400, 500);
 
         JButton button = new JButton("Send");
-        button.setBounds(300, 400, 80, 30); 
+        button.setBounds(300, 400, 80, 30);
         frame.add(button);
-        
+
         JTextField textbox = new JTextField();
         textbox.setBounds(10, 400, 270, 20);
         textbox.setVisible(true);
         frame.add(textbox);
 
-        button.addActionListener(new ActionListener() { // Lo que hace enviar
-            public void actionPerformed(ActionEvent e) {
-                String value = textbox.getText();
-                
-                try {
-                    output.writeUTF(value); // Envía el valor numérico al server
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+        DataInputStream finalIn = in;
+        DataOutputStream finalOut = out;
+
+        button.addActionListener(e -> {
+            String value = textbox.getText();
+            double result = 0;
+
+            try {
+                result = socket_send(value, finalIn, finalOut);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
             }
+
+            String result_string = Double.toString(result);
+
+            JLabel result_label = new JLabel("Cliente: " + result_string);
+            result_label.setBounds(10, y, 400, 50);
+            y += 20;
+
+            frame.add(result_label);
+            frame.revalidate();
+            frame.repaint();    // Reescribe la label (no se crea una nueva si no que se vuelve a escribir)
         });
-    
+
         frame.setLayout(null);
         frame.setVisible(true);
-        frame.setResizable(false);  
+        frame.setResizable(false);
 
-        String calculation = input.readUTF();   // Recibe valor
-        // double calc_result = extract(calculation);  // Calcula valor
-        
-        double result = extract(calculation);
-        String result_string = Double.toString(result);
-
-        JLabel result_label = new JLabel(result_string);
-        result_label.setBounds(10, y, 400, 50);
-        y += 20;
-
-        frame.add(result_label);
-        frame.revalidate();
-        frame.repaint();    // Reescribe la label (no se crea una nueva si no que se vuelve a escribir)
-
-        // System.out.println(calc_result);
-
-        output.flush();
-
-        // output.close();
-
-        // s.close();
-
+        out.writeDouble(extract(in.readUTF())); // Listo para recibir y devolver
     }
 }

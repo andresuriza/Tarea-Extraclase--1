@@ -6,7 +6,7 @@ import java.net.Socket;
 
 /**
  * Esta clase es un cliente que se conecta a la clase servidor, utilizando sockets en un puerto especifico, al igual que
- * contiene el metodo necesario para procesar el calculo del dato recibido del cliente 2.
+ * contiene el metodo necesario para procesar el calculo del dato recibido.
  *
  * @author Andres Uriza Lazo
  */
@@ -31,18 +31,6 @@ public class client {
      * valor eje y para el UI
      */
     static int y = 10;
-
-    /**
-     * abre los stream input/output para permitir la entrada y salida de datos.
-     *
-     * @throws IOException para los streams de input/output
-     */
-    private static void socket() throws IOException {
-        Socket sc = new Socket(host, port);
-
-        in = new DataInputStream(sc.getInputStream());
-        out = new DataOutputStream(sc.getOutputStream());
-    }
 
     /**
      * extrae datos numericos a partir de un string recibido, el valor ideal deberia ser 3 enteros separados
@@ -92,9 +80,11 @@ public class client {
     /**
      * crea una interfaz utilizando Swing con un panel, caja de texto y boton para recibir, enviar y
      * desplegar datos.
+     *
+     * @throws IOException para llamar a la clase socket
      */
-    private static void ui() {
-        JFrame frame = new JFrame("Usuario 1");
+    private static void ui() throws IOException {
+        JFrame frame = new JFrame("Chat - Usuario 2");
         frame.setSize(400, 500);
 
         JButton button = new JButton("Send");
@@ -108,44 +98,62 @@ public class client {
 
         button.addActionListener(e -> {
             String message = textbox.getText();
-            double result = 0;
 
             try {
                 out.writeUTF(message);
-                result = in.readDouble();
 
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
-
-            JLabel sent_label = new JLabel("Usuario 1: " + message);
-            sent_label.setBounds(10, y, 400, 50);
-            y += 20;
-
-            JLabel received_label = new JLabel("Usuario 2: " + result);
-            received_label.setBounds(10, y, 400, 50);
-            y += 20;
-
-            frame.add(sent_label);
-            frame.add(received_label);
-
-            frame.revalidate();
-            frame.repaint();
         });
 
         frame.setLayout(null);
         frame.setVisible(true);
         frame.setResizable(false);
+
+        socket(frame);
     }
 
     /**
-     * ejecuta la clase socket y ui
+     * abre los stream input/output para permitir la entrada y salida de datos al igual que mostrarlos en la interfaz.
+     *
+     * @param frame es la ventana creada con el metodo ui para agregar las labels del mensaje recibido y el resultado
+     * @throws IOException para los streams de input/output
+     */
+    private static void socket(JFrame frame) throws IOException {
+        Socket sc = new Socket(host, port);
+
+        in = new DataInputStream(sc.getInputStream());
+        out = new DataOutputStream(sc.getOutputStream());
+
+        while (true) {
+            String received = in.readUTF();
+            double result = extract(received);
+            out.writeDouble(result);
+
+            JLabel received_label = new JLabel("Usuario 2: " + received);
+            received_label.setBounds(10, y, 400, 50);
+            y += 20;
+
+            JLabel sent_label = new JLabel("Usuario 1: " + result);
+            sent_label.setBounds(10, y, 400, 50);
+            y += 20;
+
+            frame.add(received_label);
+            frame.add(sent_label);
+
+            frame.revalidate();
+            frame.repaint();
+        }
+    }
+
+    /**
+     * ejecuta la clase ui
      *
      * @param args
-     * @throws IOException para la clase socket y ui
+     * @throws IOException para la clase ui
      */
     public static void main(String[] args) throws IOException {
-        socket();
         ui();
     }
 }
